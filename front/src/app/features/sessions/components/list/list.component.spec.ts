@@ -6,16 +6,32 @@ import { expect } from '@jest/globals';
 import { SessionService } from 'src/app/services/session.service';
 
 import { ListComponent } from './list.component';
+import { SessionInformation } from 'src/app/interfaces/sessionInformation.interface';
+import { of } from 'rxjs';
 
 describe('ListComponent', () => {
   let component: ListComponent;
   let fixture: ComponentFixture<ListComponent>;
+  let sessionService: SessionService;
 
+
+  const mockSessionInformation: SessionInformation = {
+    token: 'mock-token',
+    type: 'mock-type',
+    id: 1,
+    username: 'mock-username',
+    firstName: 'Mock',
+    lastName: 'User',
+    admin: true,
+  };
+  
   const mockSessionService = {
-    sessionInformation: {
-      admin: true
-    }
-  }
+    sessionInformation: mockSessionInformation,
+    $isLogged: jest.fn(() => of({} as boolean)),
+    login: jest.fn(),
+    logout: jest.fn(),
+    next: jest.fn(),
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -33,4 +49,8 @@ describe('ListComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should get session information on get user', () => {
+    expect(component.user).toEqual(mockSessionInformation);
+  })
 });

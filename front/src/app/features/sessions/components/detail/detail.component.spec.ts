@@ -14,45 +14,53 @@ import { SessionApiService } from '../../services/session-api.service';
 import { TeacherService } from 'src/app/services/teacher.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
-const mockSessionService = {
-  sessionInformation: { id: 1, admin: true },
-};
-
-const mockSessionApiService = {
-  detail: jest.fn(() => of({} as Session)), // Mock detail with empty session object
-  delete: jest.fn(() => of({})), // Mock delete with empty observable
-  participate: jest.fn(() => of({})), // Mock participate with empty observable
-  unParticipate: jest.fn(() => of({})), // Mock unParticipate with empty observable
-};
-
-const mockTeacherService = {
-  detail: jest.fn(() => of({} as Teacher)), // Mock teacher detail with empty teacher object
-};
-
-const mockActivatedRoute = {
-  snapshot: { paramMap: { get: jest.fn(() => '1') } }, // Mock route param to be '1'
-};
-
-const mockRouter = { navigate: jest.fn() }; // Mock router navigate
-
 describe('DetailComponent', () => {
   let component: DetailComponent;
   let fixture: ComponentFixture<DetailComponent>;
-  let service: SessionService;
+  let sessionService: SessionService;
   let sessionApiService: SessionApiService;
   let teacherService: TeacherService;
 
-  const mockSessionService = {
-    sessionInformation: {
-      token: 'mock-token',
-      type: 'mock-type',
-      id: 1,
-      username: 'mock-username',
-      firstName: 'Mock',
-      lastName: 'User',
-      admin: true,
-    },
+  const mockSessionInformation = {
+    token: 'mock-token',
+    type: 'mock-type',
+    id: 1,
+    username: 'mock-username',
+    firstName: 'Mock',
+    lastName: 'User',
+    admin: true,
   };
+  
+  const mockSessionService = {
+    sessionInformation: mockSessionInformation,
+    $isLogged: jest.fn(() => of({} as boolean)),
+    login: jest.fn(),
+    logout: jest.fn(),
+    next: jest.fn(),
+  };
+  
+  const mockSessionApiService = {
+    all: jest.fn(() => of([] as Session[])),
+    detail: jest.fn(() => of({} as Session)),
+    delete: jest.fn(() => of({} as any)),
+    create: jest.fn(() => of({} as Session)),
+    update: jest.fn(() => of({} as Session)),
+    participate: jest.fn(() => of({})),
+    unParticipate: jest.fn(() => of({})),
+  };
+  
+  const mockTeacherService = {
+    all: jest.fn(() => of([] as Teacher[])),
+    detail: jest.fn(() => of({} as Teacher)),
+  };
+  
+  const mockActivatedRoute = {
+    snapshot: { paramMap: { get: jest.fn(() => '1') } },
+  };
+  
+  const mockRouter = { navigate: jest.fn() };
+
+  const mockMatSnackBar = { open: jest.fn() };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -69,23 +77,24 @@ describe('DetailComponent', () => {
         { provide: SessionApiService, useValue: mockSessionApiService },
         { provide: TeacherService, useValue: mockTeacherService },
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
-        { provide: MatSnackBar, useValue: jest.fn() }, // Mock MatSnackBar for now
+        { provide: MatSnackBar, useValue: jest.fn() },
         { provide: Router, useValue: mockRouter },
+        { provide: MatSnackBar, useValue: mockMatSnackBar },
       ],
     }).compileComponents();
-    service = TestBed.inject(SessionService);
+
+    sessionService = TestBed.inject(SessionService);
     fixture = TestBed.createComponent(DetailComponent);
     sessionApiService = TestBed.inject(SessionApiService);
     teacherService = TestBed.inject(TeacherService);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should populate session and teacher on successful fetch', () => {
+  describe('fetchSession', () => {
     const mockSession: Session = {
       id: 1,
       name: 'Test Session',
@@ -101,47 +110,70 @@ describe('DetailComponent', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    fixture.detectChanges(); // Trigger change detection
 
-    // Leverage existing mock for SessionService
-    service.sessionInformation = mockSessionService.sessionInformation; // Set mock data for SessionService
+    it('should call sessionApiService.detail and teacherService.detail on successful fetch', () => {
+      (sessionApiService.detail as jest.Mock).mockReturnValue(of(mockSession));
+      (teacherService.detail as jest.Mock).mockReturnValue(of(mockTeacher));
 
-    // Mock responses for detail calls (assuming services are injected)
-    const sessionApiService = TestBed.inject(SessionApiService);
-    const teacherService = TestBed.inject(TeacherService);
-    spyOn(sessionApiService, 'detail').and.returnValue(of(mockSession));
-    spyOn(teacherService, 'detail').and.returnValue(of(mockTeacher));
+      component.ngOnInit();
+      fixture.detectChanges();
 
-    expect(component.session).toEqual(mockSession);
-    expect(component.teacher).toEqual(mockTeacher);
-    expect(component.isParticipate).toBeFalsy(); // User not participating initially
-  });
+      expect(sessionApiService.detail).toHaveBeenCalledWith('1');
+      expect(teacherService.detail).toHaveBeenCalledWith('2');
+    })
+  
+    it('should populate session and teacher on successful fetch', () => {
+      (sessionApiService.detail as jest.Mock).mockReturnValue(of(mockSession));
+      (teacherService.detail as jest.Mock).mockReturnValue(of(mockTeacher));
+      
+      component.ngOnInit();
+      fixture.detectChanges();
+      expect(component.session).toEqual(mockSession);
+      expect(component.teacher).toEqual(mockTeacher);
+    });
+  })
 
   it('should call delete, show snackbar and navigate on successful delete', () => {
     const snackBar = TestBed.inject(MatSnackBar);
     const router = TestBed.inject(Router);
 
-    // Mock delete response
-    const sessionApiService = TestBed.inject(SessionApiService);
-    spyOn(sessionApiService, 'delete').and.returnValue(of({}));
+    (sessionApiService.delete as jest.Mock).mockReturnValue(of({}));
 
     component.delete();
     fixture.detectChanges();
 
-    expect(sessionApiService.delete).toHaveBeenCalledWith('1'); // Verify delete call
+    expect(sessionApiService.delete).toHaveBeenCalledWith('1');
     expect(snackBar.open).toHaveBeenCalledWith('Session deleted !', 'Close', {
       duration: 3000,
     });
-    expect(router.navigate).toHaveBeenCalledWith(['sessions']); // Verify router navigation
+    expect(router.navigate).toHaveBeenCalledWith(['sessions']);
   });
 
-  // Add tests for participate and unParticipate methods
+  it('should call participate on successful participate', () => {
+    (sessionApiService.participate as jest.Mock).mockReturnValue(of({}));
+
+    component.participate();
+    fixture.detectChanges();
+
+    expect(sessionApiService.participate).toHaveBeenCalledWith(component.sessionId, component.userId);
+  });
+  
+  
+  it('should call unparticipate on successful unparticipate', () => {
+    (sessionApiService.unParticipate as jest.Mock).mockReturnValue(of({}));
+
+    component.unParticipate();
+    fixture.detectChanges();
+
+    expect(sessionApiService.unParticipate).toHaveBeenCalledWith(component.sessionId, component.userId);
+  });
+
 
   it('should back to previous page', () => {
-    const spy = spyOn(window.history, 'back');
+    const navigateSpy = jest.spyOn(window.history, 'back');
 
     component.back();
 
-    expect(spy).toHaveBeenCalled;
+    expect(navigateSpy).toHaveBeenCalled;
   });
 });
