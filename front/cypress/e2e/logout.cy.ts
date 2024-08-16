@@ -1,4 +1,4 @@
-describe('Session List Display for Admin User', () => {
+describe('Logout integration test for Admin User', () => {
   const sessions = [];
 
   const user = {
@@ -22,6 +22,26 @@ describe('Session List Display for Admin User', () => {
 
     cy.url().should('include', '/sessions');
     cy.wait('@sessionsRequest');
+  });
+
+  it('should logout', () => {
+    cy.contains('Logout').click();
+
+    cy.url().should('eq', 'http://localhost:4200/');
+  });
+});
+
+describe('Logout e2e', () => {
+  beforeEach(() => {
+    cy.visit('/login');
+
+    cy.get('input[formControlName=email]').type('yoga@studio.com');
+    cy.get('input[formControlName=password]').type(
+      `${'test!1234'}{enter}{enter}`
+    );
+
+    cy.url().should('include', '/sessions');
+    cy.wait(500);
   });
 
   it('should logout', () => {

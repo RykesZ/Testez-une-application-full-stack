@@ -1,4 +1,4 @@
-describe('Session List Display for Admin User', () => {
+describe('Session modification integration test for Admin User', () => {
   const sessions = [
     {
       id: 1,
@@ -62,5 +62,36 @@ describe('Session List Display for Admin User', () => {
     cy.get('simple-snack-bar').should('contain.text', 'Session updated');
 
     cy.url().should('contain', '/sessions');
+  });
+});
+
+describe('Session modification e2e', () => {
+  describe('As an admin', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('yoga@studio.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+      cy.wait(500);
+
+      cy.get('mat-card').find('button').contains('Edit').click();
+      cy.wait(500);
+    });
+
+    it('should modify the session', () => {
+      cy.get("textarea[formControlName='description']").type(
+        'Modification de la description de la nouvelle session à venir.'
+      );
+
+      cy.get("button[type='submit']").click();
+
+      cy.get('simple-snack-bar').should('contain.text', 'Session updated');
+
+      cy.url().should('contain', '/sessions');
+    });
   });
 });

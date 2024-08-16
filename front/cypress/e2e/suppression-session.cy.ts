@@ -1,4 +1,4 @@
-describe('Session List Display for Admin User', () => {
+describe('Session suppression integration test for Admin User', () => {
   const sessions = [
     {
       id: 1,
@@ -41,7 +41,9 @@ describe('Session List Display for Admin User', () => {
       body: teacher,
     }).as('teacherRequest');
 
-    cy.intercept('DELETE', `/api/session/${sessions[0].id}`, {});
+    cy.intercept('DELETE', `/api/session/${sessions[0].id}`, {}).as(
+      'deleteRequest'
+    );
 
     cy.get('input[formControlName=email]').type('yoga@studio.com');
     cy.get('input[formControlName=password]').type(
@@ -58,5 +60,33 @@ describe('Session List Display for Admin User', () => {
 
   it('should delete the session', () => {
     cy.get('span').contains('delete').click();
+    cy.wait('@deleteRequest');
+
+    cy.url().should('contain', '/sessions');
+    cy.get('simple-snack-bar').should('contain', 'Session deleted !');
+  });
+});
+
+describe('Session suppression e2e', () => {
+  describe('When the user logs in with an admin account', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('yoga@studio.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+      cy.wait(500);
+
+      cy.get('mat-card').find('button').contains('Detail').click();
+    });
+
+    it('should delete an already created session', () => {
+      cy.get('span').contains('delete').click();
+      cy.url().should('contain', '/sessions');
+      cy.get('simple-snack-bar').should('contain', 'Session deleted !');
+    });
   });
 });

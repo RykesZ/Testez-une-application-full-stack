@@ -1,4 +1,4 @@
-describe('Session List Display for Admin User', () => {
+describe('Session informations integration test for Admin User', () => {
   const sessions = [
     {
       id: 1,
@@ -140,5 +140,63 @@ describe('Session List Display for Admin User', () => {
         .contains('Delete')
         .should('be.visible');
     }
+  });
+});
+
+describe('Session informations e2e', () => {
+  describe('When the user logs in with an admin account', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('yoga@studio.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+      cy.wait(500);
+
+      cy.get('mat-card').find('button').contains('Detail').click();
+    });
+
+    it('should display Delete button', () => {
+      cy.get('mat-card-title')
+        .find('div')
+        .find('div')
+        .eq(1)
+        .find('button')
+        .find('span')
+        .find('span')
+        .contains('Delete')
+        .should('be.visible');
+    });
+  });
+
+  describe('When the user logs in with a normal account', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('jean.jacques@gmail.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+      cy.wait(500);
+
+      cy.get('mat-card').find('button').contains('Detail').click();
+    });
+
+    it('should not display Delete button', () => {
+      cy.get('mat-card-title')
+        .find('div')
+        .find('div')
+        .eq(1)
+        .find('button')
+        .find('span')
+        .find('span')
+        .contains('Delete')
+        .should('not.exist');
+    });
   });
 });

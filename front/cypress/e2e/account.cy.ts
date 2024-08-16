@@ -1,4 +1,4 @@
-describe('Session List Display for Admin User', () => {
+describe('Account integration test for Admin User', () => {
   const sessions = [];
 
   const user = {
@@ -40,5 +40,43 @@ describe('Session List Display for Admin User', () => {
     cy.wait('@userRequest');
 
     cy.get('p').contains('admin').should('have.text', 'You are admin');
+  });
+});
+
+describe('Account e2e', () => {
+  describe('When the user logs in with an admin account', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('yoga@studio.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+    });
+
+    it("should go in the Account section to see 'You are admin' message", () => {
+      cy.contains('Account').click();
+      cy.get('p').contains('admin').should('have.text', 'You are admin');
+    });
+  });
+
+  describe('When the user logs in with a normal account', () => {
+    beforeEach(() => {
+      cy.visit('/login');
+
+      cy.get('input[formControlName=email]').type('jean.jacques@gmail.com');
+      cy.get('input[formControlName=password]').type(
+        `${'test!1234'}{enter}{enter}`
+      );
+
+      cy.url().should('include', '/sessions');
+    });
+
+    it("should go in the Account section not to see 'You are admin' message", () => {
+      cy.contains('Account').click();
+      cy.get('p').contains('admin').should('not.exist');
+    });
   });
 });
