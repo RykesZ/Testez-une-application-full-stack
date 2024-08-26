@@ -141,13 +141,11 @@
         "e2e": {
           "builder": "@cypress/schematic:cypress",
           "options": {
-            "devServerTarget": "yoga:serve-coverage",
-            "watch": true,
-            "headless": false
+            "devServerTarget": "yoga:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "yoga:serve-coverage:production"
+              "devServerTarget": "yoga:serve:production"
             }
           }
         },
