@@ -18,7 +18,7 @@ Ce projet constitue le backend et le frontend d'une application de gestion de Yo
 2. **Création de la base de données** :
     - En ligne de commande :
         - Connectez-vous à MySQL via la ligne de commande ou un client GUI comme MySQL Workbench.
-        - Exécutez le fichier SQL fourni pour créer le schéma de la base de données :
+        - Exécutez le fichier SQL fourni dans /resources/sql pour créer le schéma de la base de données :
             ```bash
             mysql -u <username> -p yoga dump-yoga-202408272111.sql
             ```
