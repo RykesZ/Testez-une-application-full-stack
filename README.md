@@ -20,7 +20,7 @@ Ce projet constitue le backend et le frontend d'une application de gestion de Yo
         - Connectez-vous à MySQL via la ligne de commande ou un client GUI comme MySQL Workbench.
         - Exécutez le fichier SQL fourni pour créer le schéma de la base de données :
             ```bash
-            mysql -u <username> -p yoga <dump-yoga-202408272111.sql
+            mysql -u <username> -p yoga dump-yoga-202408272111.sql
             ```
         - Remplacez `<username>` par votre nom d'utilisateur MySQL.
     - Via un gestionnaire de base de données tel que DBeaver.
